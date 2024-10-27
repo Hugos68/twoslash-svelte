@@ -1,18 +1,20 @@
 {
-  "name": "twoslash-svelte",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "dev": "bun run --hot src/index.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "*"
-  },
-  "dependencies": {
-    "svelte2tsx": "^0.7.22",
-    "twoslash": "^0.2.12"
-  }
+	"name": "twoslash-svelte",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"format": "biome format --write",
+		"lint": "biome lint --write"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.6.0"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"svelte2tsx": "^0.7.22",
+		"twoslash": "^0.2.12"
+	}
 }
