@@ -16,7 +16,7 @@ export function createTwoSlasher(
 			return twoslasherBase(...parameters);
 		}
 		const tsx = svelte2tsx(parameters[0]);
-		return twoslasherBase(tsx.code, "tsx", {
+		const result = twoslasherBase(tsx.code, "tsx", {
 			compilerOptions: {
 				...defaultCompilerOptions,
 				types: [
@@ -26,7 +26,12 @@ export function createTwoSlasher(
 					"../node_modules/svelte2tsx/svelte-shims-v4",
 				],
 			},
+			// TODO: Use `tsx.map.mappings` to generate `positionCompletions`, `positionQueries` and `positionHighlights`.
+			positionCompletions: [],
+			positionQueries: [],
+			positionHighlights: [],
 		});
+		return result;
 	}
 	return twoslasher;
 }
@@ -40,4 +45,5 @@ const code = /* html */ `
 <h1>Test</h1>
 `;
 
-console.log(createTwoSlasher()(code, "svelte"));
+const twoslash = createTwoSlasher();
+const result = twoslash(code, "svelte");
