@@ -8,11 +8,11 @@ export function createTwoSlasher(...parameters: Parameters<typeof createTwoSlash
             return twoslasherBase(...parameters);
         }
         const tsx = svelte2tsx(parameters[0]);
+        console.log(tsx.code);
         return twoslasherBase(tsx.code, 'tsx', {
             compilerOptions: {
                 ...defaultCompilerOptions,
-                types: ['svelte2tsx'],
-                typeRoots: ['./node_modules/svelte2tsx/**']
+                types: ["../node_modules/svelte2tsx/svelte-jsx", "../node_modules/svelte2tsx/svelte-jsx-v4", "../node_modules/svelte2tsx/svelte-shims", "../node_modules/svelte2tsx/svelte-shims-v4"]
             }
         });
     }
