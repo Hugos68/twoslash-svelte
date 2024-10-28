@@ -1,3 +1,4 @@
+import { SourceMapConsumer } from "source-map-js";
 import { svelte2tsx } from "svelte2tsx";
 import {
 	createTwoslasher as createTwoSlasherBase,
@@ -33,9 +34,36 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 		twoslashResult.code = code;
 		twoslashResult.nodes = twoslashResult.nodes
 			.map((node) => {
-				return node;
+				if ("target" in node && node.target === "svelteHTML") {
+					return null;
+				}
+				if (
+					"tags" in node &&
+					node.tags?.some((tag) => tag.includes("internal"))
+				) {
+					return null;
+				}
+
+				const consumer = new SourceMapConsumer({
+					...tsx.map,
+					// Needed because of type mismatch (string vs number)
+					version: String(tsx.map.version),
+				});
+				const pos = consumer.originalPositionFor({
+					line: node.line,
+					column: node.character,
+				});
+				if (pos.source === null) {
+					return null;
+				}
+				return {
+					...node,
+					line: pos.line,
+					character: pos.column,
+				};
 			})
 			.filter((node) => node !== null);
+		twoslashResult.meta.extension = "svelte";
 		return twoslashResult;
 	}
 	return twoslasher;
@@ -50,4 +78,3 @@ const code = /* html */ `
 
 const twoslash = createTwoslasher();
 const result = twoslash(code, "svelte");
-console.log(result.nodes);

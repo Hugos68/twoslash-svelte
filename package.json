@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"@biomejs/biome": "^1.9.4",
+		"source-map-js": "^1.2.1",
 		"svelte2tsx": "^0.7.22",
 		"twoslash": "^0.2.12"
 	}
