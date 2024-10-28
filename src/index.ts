@@ -18,7 +18,7 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 			return twoslasherBase(code, extension, options);
 		}
 		const tsx = svelte2tsx(code);
-		const twoslashResult = twoslasherBase(tsx.code, "tsx", {
+		const result = twoslasherBase(tsx.code, "tsx", {
 			compilerOptions: {
 				...options?.compilerOptions,
 				...defaultCompilerOptions,
@@ -31,8 +31,9 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 			},
 			...options,
 		});
-		twoslashResult.code = code;
-		twoslashResult.nodes = twoslashResult.nodes
+
+		result.code = code;
+		result.nodes = result.nodes
 			.map((node) => {
 				if ("target" in node && node.target === "svelteHTML") {
 					return null;
@@ -63,8 +64,15 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 				};
 			})
 			.filter((node) => node !== null);
-		twoslashResult.meta.extension = "svelte";
-		return twoslashResult;
+		result.nodes = result.nodes.filter((n, idx) => {
+			const next = result.nodes[idx + 1];
+			if (!next) return true;
+			// When multiple nodes are on the same position, we keep the last one by ignoring the previous ones
+			if (next.type === n.type && next.start === n.start) return false;
+			return true;
+		});
+		result.meta.extension = "svelte";
+		return result;
 	}
 	return twoslasher;
 }
