@@ -1,11 +1,10 @@
+import { svelte2tsx } from "svelte2tsx";
 import {
 	createTwoslasher as createTwoSlasherBase,
 	defaultCompilerOptions,
 	type CreateTwoslashOptions,
 	type TwoslashExecuteOptions,
 } from "twoslash";
-import { svelteToRawTsx as svelteToTsx } from "./utility/svelte-to-tsx";
-import { simplifyTsx } from "./utility/simplify-tsx";
 
 export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 	const twoslasherBase = createTwoSlasherBase(createOptions);
@@ -14,19 +13,11 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 		extension?: string,
 		options: TwoslashExecuteOptions = {},
 	) {
-		// If we're not dealing with Svelte, just use the base twoslasher
 		if (extension !== "svelte") {
 			return twoslasherBase(code, extension, options);
 		}
-
-		// Convert Svelte to tsx
-		const tsx = svelteToTsx(code);
-
-		// Get simplified tsx
-		const simplifiedTsx = simplifyTsx(tsx.code);
-
-		// Run twoslash on the simplified tsx
-		const twoslashResult = twoslasherBase(simplifiedTsx.code, "tsx", {
+		const tsx = svelte2tsx(code);
+		const twoslashResult = twoslasherBase(tsx.code, "tsx", {
 			compilerOptions: {
 				...options?.compilerOptions,
 				...defaultCompilerOptions,

@@ -14,10 +14,7 @@
 	},
 	"dependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"magic-string": "^0.30.12",
 		"svelte2tsx": "^0.7.22",
-		"twoslash": "^0.2.12",
-		"twoslash-protocol": "^0.2.12",
-		"vlq": "^2.0.4"
+		"twoslash": "^0.2.12"
 	}
 }
