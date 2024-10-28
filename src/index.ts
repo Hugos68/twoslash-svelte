@@ -1,23 +1,34 @@
 import {
 	createTwoslasher as createTwoSlasherBase,
-	type TwoslashReturn,
 	defaultCompilerOptions,
+	type CreateTwoslashOptions,
+	type TwoslashExecuteOptions,
 } from "twoslash";
-import { svelte2tsx } from "svelte2tsx";
+import { svelteToRawTsx as svelteToTsx } from "./utility/svelte-to-tsx";
+import { simplifyTsx } from "./utility/simplify-tsx";
 
-export function createTwoslasher(
-	...createTwoslasherParameters: Parameters<typeof createTwoSlasherBase>
-) {
-	const twoslasherBase = createTwoSlasherBase(...createTwoslasherParameters);
+export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
+	const twoslasherBase = createTwoSlasherBase(createOptions);
 	function twoslasher(
-		...twoslasherParameters: Parameters<typeof twoslasherBase>
-	): TwoslashReturn {
-		if (twoslasherParameters[1] !== "svelte") {
-			return twoslasherBase(...twoslasherParameters);
+		code: string,
+		extension?: string,
+		options: TwoslashExecuteOptions = {},
+	) {
+		// If we're not dealing with Svelte, just use the base twoslasher
+		if (extension !== "svelte") {
+			return twoslasherBase(code, extension, options);
 		}
-		const tsx = svelte2tsx(twoslasherParameters[0]);
-		const result = twoslasherBase(tsx.code, "tsx", {
+
+		// Convert Svelte to tsx
+		const tsx = svelteToTsx(code);
+
+		// Get simplified tsx
+		const simplifiedTsx = simplifyTsx(tsx.code);
+
+		// Run twoslash on the simplified tsx
+		const twoslashResult = twoslasherBase(simplifiedTsx.code, "tsx", {
 			compilerOptions: {
+				...options?.compilerOptions,
 				...defaultCompilerOptions,
 				types: [
 					"../node_modules/svelte2tsx/svelte-jsx",
@@ -26,32 +37,26 @@ export function createTwoslasher(
 					"../node_modules/svelte2tsx/svelte-shims-v4",
 				],
 			},
-			shouldGetHoverInfo(id) {
-				if (id.startsWith("__sveltets")) {
-					return false;
-				}
-				return true;
-			},
-			// TODO: Use `tsx.map.mappings` to generate `positionCompletions`, `positionQueries` and `positionHighlights`.
-			positionCompletions: [],
-			positionQueries: [],
-			positionHighlights: [],
+			...options,
 		});
-		result.code = twoslasherParameters[0];
-		return result;
+		twoslashResult.code = code;
+		twoslashResult.nodes = twoslashResult.nodes
+			.map((node) => {
+				return node;
+			})
+			.filter((node) => node !== null);
+		return twoslashResult;
 	}
 	return twoslasher;
 }
 
 const code = /* html */ `
 <script>
-    let a = 1;
-    let b = 2;
+  let world = $state('Hello');
 </script>
-
-<h1>Test</h1>
+<h1>Hello {world}!</h1>
 `;
 
 const twoslash = createTwoslasher();
 const result = twoslash(code, "svelte");
-console.log(result);
+console.log(result.nodes);
