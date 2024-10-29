@@ -1,4 +1,4 @@
-import { SourceMapConsumer } from "source-map-js";
+import { SourceMapConsumer, type MappedPosition } from "source-map-js";
 import { svelte2tsx } from "svelte2tsx";
 import {
 	createTwoslasher as createTwoSlasherBase,
@@ -18,6 +18,7 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 			return twoslasherBase(code, extension, options);
 		}
 		const tsx = svelte2tsx(code);
+
 		const result = twoslasherBase(tsx.code, "tsx", {
 			compilerOptions: {
 				...options?.compilerOptions,
@@ -44,7 +45,6 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 				) {
 					return null;
 				}
-
 				const consumer = new SourceMapConsumer({
 					...tsx.map,
 					// Needed because of type mismatch (string vs number)
@@ -54,11 +54,21 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 					line: node.line,
 					column: node.character,
 				});
+
 				if (pos.source === null) {
 					return null;
 				}
+
+				const start = getCharacterIndex(code, pos);
+
+				if (start === -1) {
+					return null;
+				}
+
 				return {
 					...node,
+					start: start,
+					length: node.length,
 					line: pos.line,
 					character: pos.column,
 				};
@@ -77,6 +87,13 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 	return twoslasher;
 }
 
+function getCharacterIndex(code: string, position: MappedPosition) {
+	const lines = code.split("\n");
+	const line = lines[position.line - 1];
+	if (!line) return -1;
+	return line.slice(0, position.column).length;
+}
+
 const code = /* html */ `
 <script>
   let world = $state('Hello');
@@ -86,3 +103,4 @@ const code = /* html */ `
 
 const twoslash = createTwoslasher();
 const result = twoslash(code, "svelte");
+console.log(result.hovers);
