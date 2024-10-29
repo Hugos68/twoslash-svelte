@@ -1,4 +1,4 @@
-import { SourceMapConsumer, type MappedPosition } from "source-map-js";
+import { SourceMapConsumer } from "source-map-js";
 import { svelte2tsx } from "svelte2tsx";
 import {
 	createTwoslasher as createTwoSlasherBase,
@@ -7,7 +7,11 @@ import {
 	type TwoslashExecuteOptions,
 } from "twoslash";
 
-export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
+import { createTwoslasher } from "twoslash-vue";
+
+import { createPositionConverter } from "twoslash-protocol";
+
+export function createTwoslasher_(createOptions: CreateTwoslashOptions = {}) {
 	const twoslasherBase = createTwoSlasherBase(createOptions);
 	function twoslasher(
 		code: string,
@@ -33,6 +37,8 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 			...options,
 		});
 
+		const ps = createPositionConverter(code);
+
 		result.code = code;
 		result.nodes = result.nodes
 			.map((node) => {
@@ -45,12 +51,13 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 				) {
 					return null;
 				}
-				const consumer = new SourceMapConsumer({
+				const smc = new SourceMapConsumer({
 					...tsx.map,
 					// Needed because of type mismatch (string vs number)
 					version: String(tsx.map.version),
 				});
-				const pos = consumer.originalPositionFor({
+
+				const pos = smc.originalPositionFor({
 					line: node.line,
 					column: node.character,
 				});
@@ -59,15 +66,9 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 					return null;
 				}
 
-				const start = getCharacterIndex(code, pos);
-
-				if (start === -1) {
-					return null;
-				}
-
 				return {
 					...node,
-					start: start,
+					start: ps.posToIndex(pos.line, pos.column),
 					length: node.length,
 					line: pos.line,
 					character: pos.column,
@@ -87,20 +88,12 @@ export function createTwoslasher(createOptions: CreateTwoslashOptions = {}) {
 	return twoslasher;
 }
 
-function getCharacterIndex(code: string, position: MappedPosition) {
-	const lines = code.split("\n");
-	const line = lines[position.line - 1];
-	if (!line) return -1;
-	return line.slice(0, position.column).length;
-}
-
 const code = /* html */ `
-<script>
-  let world = $state('Hello');
+<script setup>
+  let world = "hello";
 </script>
-<h1>Hello {world}!</h1>
 `;
 
-const twoslash = createTwoslasher();
+const twoslash = createTwoslasher_();
 const result = twoslash(code, "svelte");
 console.log(result.hovers);
