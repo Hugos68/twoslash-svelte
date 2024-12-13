@@ -1,5 +1,11 @@
 # @hugokorte/twoslash-svelte
 
+## 0.0.3
+
+### Patch Changes
+
+- d504b85: Embed svelte2tsx types
+
 ## 0.0.2
 
 ### Patch Changes
