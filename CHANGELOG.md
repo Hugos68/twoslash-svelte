@@ -1,5 +1,11 @@
 # @hugokorte/twoslash-svelte
 
+## 0.0.4
+
+### Patch Changes
+
+- b04e357: Embed types properly
+
 ## 0.0.3
 
 ### Patch Changes
