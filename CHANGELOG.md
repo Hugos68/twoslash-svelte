@@ -1,5 +1,11 @@
 # @hugokorte/twoslash-svelte
 
+## 0.0.5
+
+### Patch Changes
+
+- 3178e2b: Use require.resolve to resolve typings.
+
 ## 0.0.4
 
 ### Patch Changes
